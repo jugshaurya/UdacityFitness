@@ -1,6 +1,8 @@
 import React, { Component } from "react";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import { getMetricMetaInfo } from "../utils/helpers";
+import Steppers from "./Stepper";
+import Slider from "./Slider";
 
 export default class AddEntry extends Component {
   state = {
@@ -14,33 +16,52 @@ export default class AddEntry extends Component {
   increment = (metric) => {
     const { max, step } = getMetricMetaInfo(metric);
 
-    this.setState((prevState) => {
-      this.setState({
-        [metric]:
-          prevState.metric >= max ? prevState.metric : prevState.metric + step,
-      });
-    });
+    this.setState((prevState) => ({
+      [metric]:
+        prevState.metric >= max ? prevState.metric : prevState.metric + step,
+    }));
   };
 
-  decreament = (metric) => {
+  decrement = (metric) => {
     const { step } = getMetricMetaInfo(metric);
+    this.setState((prevState) => ({
+      [metric]:
+        prevState.metric <= 0 ? prevState.metric : prevState.metric - step,
+    }));
+  };
 
-    this.setState((prevState) => {
-      this.setState({
-        [metric]:
-          prevState.metric <= 0 ? prevState.metric : prevState.metric - step,
-      });
-    });
+  slide = (metric, val) => {
+    this.setState({ [metric]: value });
   };
 
   render() {
+    const info = getMetricMetaInfo();
+
     return (
       <View>
-        {getMetricMetaInfo("run").getIcon()}
-        {getMetricMetaInfo("eat").getIcon()}
-        {getMetricMetaInfo("bike").getIcon()}
-        {getMetricMetaInfo("swim").getIcon()}
-        {getMetricMetaInfo("sleep").getIcon()}
+        {Object.keys(info).map((key) => {
+          const { type, getIcon, ...rest } = info[key];
+          const value = this.state[key];
+          return (
+            <View key={key}>
+              {getIcon()}
+              {type === "steppers" ? (
+                <Steppers
+                  value={value}
+                  onIncrement={() => this.increment(key)}
+                  onDecrement={() => this.decrement(key)}
+                  {...rest}
+                />
+              ) : (
+                <Slider
+                  value={value}
+                  onChange={(value) => this.slider(key, value)}
+                  {...rest}
+                />
+              )}
+            </View>
+          );
+        })}
       </View>
     );
   }
